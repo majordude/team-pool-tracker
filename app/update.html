@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><title>Updating Team Pool Tracker</title>
+<style>body{font-family:-apple-system,system-ui,'Segoe UI',Roboto,Arial,sans-serif;text-align:center;padding:48px 20px;font-size:22px;color:#1a1a1a}h1{color:#0F6E56}</style></head>
+<body><h1>Updating Team Pool Tracker</h1><p id="m">Please wait a few seconds. Your players and matches are kept.</p>
+<script>
+(function(){
+var files=['./','index.html','app.js','engine.js','style.css','manifest.webmanifest','version.json','icon-192.png','icon-512.png'];
+function done(){document.getElementById('m').textContent='Done. Opening the app.';setTimeout(function(){location.replace('./?u='+Date.now());},700);}
+var jobs=[];
+try{if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));}));}catch(e){}
+try{if(window.caches)jobs.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k);}));}));}catch(e){}
+Promise.all(jobs).catch(function(){}).then(function(){return Promise.all(files.map(function(f){return fetch(f,{cache:'reload'}).catch(function(){});}));}).then(done,done);
+})();
+</script></body></html>
