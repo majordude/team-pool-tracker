@@ -1,5 +1,5 @@
 'use strict';
-var E=window.Engine,KEY='tpt.v1',VERSION='0.17 trial',BUILD='Oct 21, 2026',REQV='v29',CREDIT_AI='Claude Sonnet 5.5';
+var E=window.Engine,KEY='tpt.v1',VERSION='0.18 trial',BUILD='Oct 28, 2026',REQV='v30',CREDIT_AI='Claude Sonnet 5.5';
 var EB='<svg width="36" height="36" viewBox="0 0 30 30" role="img" aria-label="8 ball"><circle cx="15" cy="15" r="14" fill="#2C2C2A" stroke="#fff" stroke-width="1"/><circle cx="15" cy="12" r="7" fill="#fff"/><text x="15" y="16" text-anchor="middle" font-size="11" font-weight="bold" fill="#2C2C2A">8</text></svg>';
 function now(){return window.__now?window.__now():Date.now();}
 function uid(){return Math.random().toString(36).slice(2,9)+now().toString(36).slice(-3);}
@@ -123,8 +123,9 @@ views.schedule=function(){
     var names=g.p.map(function(id){return g.status==='queued'?'<button class="nm" data-act="swap" data-n="'+g.n+'" data-id="'+id+'">'+num(m,id)+' '+esc(pname(id))+'</button>':num(m,id)+' '+esc(pname(id));}).join(' + ');
     return '<div class="gm"><div class="t"><span>Game '+g.n+' &middot; '+tb+'</span><span class="tg">'+(g.edited?'Edited':'Auto')+'</span></div><div style="display:flex;justify-content:space-between;align-items:center"><span>'+names+'</span>'+(g.p.length===2&&g.status==='queued'?'<button class="bt sm" style="width:auto" data-act="lock" data-n="'+g.n+'">Lock</button>':'')+'</div></div>';}).join('');
   var locks=m.locks.map(function(l){return esc(pname(l[0]))+' + '+esc(pname(l[1]));}).join(', ');
-  return hdr('Schedule','plan')+'<div class="bd"><p class="st">Schedule</p><p class="s">The first '+m.tables+' game'+(m.tables===1?'':'s')+' start on '+(m.tables===1?'the table':'Tables 1 to '+m.tables)+'. After that, each game goes to the next table that frees up. Tap a name to swap it. Lock keeps a pair together for this match.</p>'+lockBox(m)+
-  '<div class="row2"><button class="bt sm" data-act="reshuffle">Reshuffle</button><button class="bt sm" data-act="undo">Undo</button></div><div style="height:8px"></div><button class="bt sm bl" data-act="printblank">Print blank score sheet</button><div style="height:12px"></div>'+rows+btn('Start match','startmatch','pr')+'</div>';
+  var act2=m.status==='active';
+  return hdr('Schedule',act2?'play':'plan')+'<div class="bd"><p class="st">Schedule</p><p class="s">The first '+m.tables+' game'+(m.tables===1?'':'s')+' start on '+(m.tables===1?'the table':'Tables 1 to '+m.tables)+'. After that, each game goes to the next table that frees up. Tap a name to swap it. Lock keeps a pair together for this match.</p>'+lockBox(m)+
+  '<div class="row2"><button class="bt sm" data-act="reshuffle">Reshuffle</button><button class="bt sm" data-act="undo">Undo</button></div><div style="height:8px"></div><button class="bt sm bl" data-act="printblank">Print blank score sheet</button><div style="height:12px"></div>'+rows+(act2?btn('Back to scorekeeper','go','pr').replace('data-act="go"','data-act="go" data-v="play"'):btn('Start match','startmatch','pr'))+'</div>';
 };
 views.play=function(){
   var m=cur(),pc=paceOf(m),q=queued(m),cards='';
@@ -145,7 +146,7 @@ views.play=function(){
   return hdr('Scorekeeper')+'<div class="bd"><p class="st">'+esc(S.team||'Our team')+' vs '+esc(m.oppName)+' &middot; '+tt.w+'-'+tt.l+'</p>'+
   (q.length?'<p class="s">Next up: '+nextList+'</p>':'')+cards+
   '<div class="box '+cls+'"><b>'+pc.status+'</b> &middot; '+pc.fit+' more game'+(pc.fit===1?'':'s')+' can start before '+m.cutoff+' &middot; '+q.length+' left</div>'+warn+
-  '<div class="row2"><button class="bt sm" data-act="latepick">Add player now</button><button class="bt sm" data-act="undo">Undo</button></div><div style="height:10px"></div><button class="bt sm" data-act="waiting">Waiting games and drops</button><div style="height:12px"></div>'+btn('Finish match','finish','bl')+'</div>';
+  '<div class="row2"><button class="bt sm" data-act="latepick">Add player now</button><button class="bt sm" data-act="undo">Undo</button></div><div style="height:10px"></div><button class="bt sm" data-act="waiting">Waiting games and drops</button><div style="height:10px"></div><button class="bt sm" data-act="editwaiting">Swap players in waiting games</button><div style="height:12px"></div>'+btn('Finish match','finish','bl')+'</div>';
 };
 function resultBody(m){
   var tt=totals(m),rows=m.games.filter(function(g){return g.result;}).map(function(g){return '<tr><td>'+g.n+'</td><td>'+(g.table||'')+'</td><td>'+esc(gnames(m,g))+'</td><td>'+(g.result==='W'?'Win':'Loss')+'</td></tr>';}).join('');
@@ -202,7 +203,7 @@ views.help=function(){
   sec('Before the match',['1. Home, Start match.','2. Pick the opponent. The first time, type the other team\'s name in the box and tap Add opponent. After that, pick from the list or tap Add another opponent.','2b. Check the Match date. It shows today. Change it if you are entering a match from another day.','3. Pick Home or Away, the game type, and the format.','4. Turn on Practice if this is only a rehearsal. Practice matches are never counted.','5. Tap each person who is here. Someone not on the list? Type the name in the box and tap Add to roster and mark here.','6. Tap Continue.'])+
   sec('Games that fit',['The app shows how many games fit before the last start time. Change tables or minutes per game with the plus and minus buttons if needed. Tap Build schedule. The number of games each person gets is a plan, not a promise.'])+
   sec('Schedule',['The number in front of each name is that player\'s number for this match. Tap Print blank score sheet for a paper copy to write results on if a phone dies. Games 1 and 2 show their starting tables; later games take the next free table. Tap a name to swap that person. Tap Lock to keep two people together for this match. To release a pair, tap Unlock in the Locked pairs box; it is also on the Waiting games screen during the match. Reshuffle makes a new set. Undo takes back the last change. When it looks right, tap Start match.'])+
-  sec('During the match',['1. The Scorekeeper screen shows what is on each table. When a game ends, tap Win or Loss for that table.','2. The next game starts by itself. Next up shows who is coming.','3. Tapped the wrong one? Tap Undo right away.','4. The pace line says On pace, Ahead, or Running behind. If it says behind, tap Choose which to drop. Tap the games you want to remove, so you decide who sits out. Check the counts at the bottom, then tap Drop selected games. You can also open Waiting games and drops at any time. Dropped games are listed on the result and the printed record.','5. Someone arrives late? Tap Add player now and pick the name. People who came on time keep their planned games.','6. Table is free but nobody can start? Tap Choose another game.'])+
+  sec('During the match',['1. The Scorekeeper screen shows what is on each table. When a game ends, tap Win or Loss for that table.','2. The next game starts by itself. Next up shows who is coming.','3. Tapped the wrong one? Tap Undo right away.','4. The pace line says On pace, Ahead, or Running behind. If it says behind, tap Choose which to drop. Tap the games you want to remove, so you decide who sits out. Check the counts at the bottom, then tap Drop selected games. You can also open Waiting games and drops at any time. Dropped games are listed on the result and the printed record.','5. Someone arrives late? Tap Add player now and pick the name, or type a new name at the bottom. The app gives them a fair share of the games still waiting, so the later they come the fewer they get. To bump someone yourself, tap Swap players in waiting games, then tap a name to swap it. People who came on time keep their planned games.','6. Table is free but nobody can start? Tap Choose another game.'])+
   sec('After the match',['The result screen appears after the last game. Tap Send results to the Manager to share the results file. Tap Print or save PDF to print the record. Tap Send to players to text the score. To end early, tap Finish match on the Scorekeeper screen.'])+
   sec('Practice matches',['Want to try the app without counting it? On the setup screen tap Practice before you continue. Run the match as usual.','When you are done: Home, Past matches. Scroll to Practice matches (not counted) and tap Delete all practice matches, then confirm.','Forgot to tap Practice? Open the match from Past matches, scroll to the bottom, tap Delete this match, and confirm.','If you set a Manager PIN, delete asks for it first. Each phone has its own PIN.'])+
   sec('Stats and past matches',['Past matches shows the record. Team stats opens with the Manager PIN. Forgot the PIN? Type the recovery code instead and choose a new PIN. To remove any match, see Practice matches above.'])+
@@ -231,9 +232,29 @@ views.waiting=function(){
 views.late=function(){
   var m=cur(),here={};hereIds(m).forEach(function(i){here[i]=1;});
   var rows=activeP().filter(function(p){return !here[p.id];}).map(function(p){return '<button class="bt" data-act="addlate" data-id="'+p.id+'">'+esc(p.name)+'</button>';}).join('');
-  return hdr('Add player now','play')+'<div class="bd"><p class="s">On-time players keep their planned games. A late player gets only spare games.</p>'+(rows||'<p class="s">Everyone is already here.</p>')+'</div>';
+  return hdr('Add player now','play')+'<div class="bd"><p class="s">On-time players keep their planned games. A late player gets only spare games.</p>'+(rows||'<p class="s">Everyone on the roster is already here.</p>')+'<h2>Someone not on the list?</h2><input type="text" id="newlate" placeholder="Name, or several separated by commas"><div style="height:8px"></div><button class="bt" data-act="addlatenew">Add to roster and mark here</button></div>';
 };
 
+async function lateAdd(m,L){
+      snap();var onTime=hereIds(m);m.here.push({id:L,late:true,at:now(),num:Math.max.apply(null,[0].concat(m.here.map(function(h){return h.num||0;})))+1});
+      if(m.status==='setup'||!m.games.length){generate(m);}
+      else{
+        var qd=queued(m),planned=plannedCounts(m),lockedMap={};m.locks.forEach(function(l){lockedMap[l[0]]=1;lockedMap[l[1]]=1;});
+        var arrs=qd.map(function(g){return g.p;});var given=E.addLate(arrs,planned,onTime,L,lockedMap);
+        qd.forEach(function(g,i){g.p=arrs[i];});
+        var slots=0;qd.forEach(function(g){slots+=g.p.length;});
+        var target=qd.length?Math.min(qd.length,Math.max(1,Math.floor(slots/hereIds(m).length))):0;
+        while(given<target){
+          var qc={};qd.forEach(function(g){g.p.forEach(function(x){qc[x]=(qc[x]||0)+1;});});
+          var best=null;
+          qd.forEach(function(g){if(g.p.indexOf(L)>=0)return;g.p.forEach(function(x,k){if(lockedMap[x])return;if(!best||qc[x]>best.c)best={g:g,k:k,c:qc[x]};});});
+          if(!best||best.c<=(qc[L]||0)+1)break;
+          best.g.p[best.k]=L;given++;
+        }
+        await uiAlert(given?pname(L)+' added to '+given+' remaining game'+(given===1?'':'s')+'. The number depends on how many games are left. Use Swap players in waiting games to change it.':'No spare games for '+pname(L)+'. You can still swap them in from the Schedule.');
+        fillTables(m);
+      }
+}
 function checkUpdate(){
   if(!navigator.onLine||!window.fetch)return;
   fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
@@ -258,15 +279,17 @@ function finishNow(m){m.status='complete';m.finishedAt=now();V.matchId=m.id;save
 var FEATURES=[
  ['Players and roster',['Add players by typing or dictating names separated by commas','Mark occasional players as Sub','Remove a player for good, or Make inactive someone who may return','Send the roster to another phone by text message','Add someone not on the list while setting up a match','Rename a player, remove a misspelled one, or move someone who left to Inactive']],
  ['Setting up a match',['Opponent list, with a name box the first time','Match date picker','Home or away, game type, and format (doubles, scotch doubles, singles)','Real or Practice match. Practice matches never count','Tap who is here; players get numbers for the match']],
- ['Schedule',['Automatic fair pairings and tables from who is here','Number of games based on the time that fits and your target','Swap a player, lock a pair for the match, reshuffle, and undo','Auto and Edited tags show what the app chose and what you changed','Print a blank score sheet as a paper backup']],
- ['During the match',['Tap Win or Loss per table and the next game starts by itself','Next up list and a pace line: On pace, Ahead, or Running behind','If behind, choose which waiting games to drop and see each player\'s counts first','Dropped games are listed on the result and the printed record','Add a late player, who gets only spare games','Choose another game for a free table; finish the match early']],
+ ['Schedule',['Automatic fair pairings and tables from who is here','Number of games based on the time that fits and your target','Swap a player, lock or unlock a pair for the match, reshuffle, and undo','Starting table shown for each game; later games take the next free table','Late arrivals get a fair share of the games still waiting; swap players in waiting games during the match','Auto and Edited tags show what the app chose and what you changed','Print a blank score sheet as a paper backup']],
+ ['During the match',['Tap Win or Loss per table and the next game starts by itself','Next up list and a pace line: On pace, Ahead, or Running behind','If behind, choose which waiting games to drop and see each player\'s counts first','Dropped games are listed on the result and the printed record','Add a late player (on or off the roster) who gets a fair share of the waiting games','Choose another game for a free table; finish the match early']],
  ['After the match',['Result screen with the score','Send the results file to the manager','Print or save a PDF record with player numbers','Text the score to players','Past matches record; delete a match with the PIN']],
  ['Stats',['Team stats behind the Manager PIN','Wins and losses, win percentage after enough games, and best partner','Home versus away results']],
  ['Safety and privacy',['Works without internet after the first visit','Everything stays on your phone; no account','Manager PIN with a recovery code','Backup file export and import','Not listed in search engines']],
- ['Updates and help',['Version and build date shown on Home and in Settings','Update now button and Update app button keep your data','Repair page teampooltracker.com/update.html for a phone stuck on an old copy','This Help screen']],
+ ['Updates and help',['Version and build date shown on Home and in Settings','Update now button and Update app button keep your data','Repair page teampooltracker.com/update.html for a phone stuck on an old copy','This Help screen','A feature sheet page you can text to anyone']],
  ['Coming later',['Tournaments that group many matches','Results split by opponent team','Spreadsheet (CSV) export and a change log','Manager invite and scorekeeper links','A wall display for the match']]
 ];
-function featuresHtml(){return '<h2>What this app can do</h2><p class="s">Version '+VERSION+'</p>'+FEATURES.map(function(g){return '<p style="margin:12px 0 4px"><b>'+esc(g[0])+'</b></p>'+g[1].map(function(f){return '<p style="margin:0 0 4px;padding-left:16px;text-indent:-16px;line-height:1.4">&bull; '+esc(f)+'</p>';}).join('');}).join('');}
+var PITCH=['Everyone gets a fair turn. Pairings are built from whoever shows up, from 4 players to 15 or more.','Late arrivals are no problem. Add someone mid-match and the app slots them into the waiting games.','You stay in charge. Swap, lock, unlock, or drop games when time runs short.','Keeps up with the clock. A pace line says On pace, Ahead, or Running behind.','Scoring is two taps. Win or Loss, and the next game starts by itself.','Free, works offline, no account, and your data stays on your phone.'];
+function pitchHtml(){return '<div class="box info"><b>Why use it</b>'+PITCH.map(function(t){return '<p style="margin:8px 0 0;line-height:1.4">&bull; '+esc(t)+'</p>';}).join('')+'<div style="height:12px"></div><button class="bt sm" data-act="sharefeatures">Send the feature sheet by text</button><div style="height:8px"></div><a class="bt sm" style="display:block;text-align:center;text-decoration:none" href="features.html" target="_blank">Open the feature sheet</a></div>';}
+function featuresHtml(){return '<h2>What this app can do</h2><p class="s">Version '+VERSION+'</p>'+pitchHtml()+FEATURES.map(function(g){return '<p style="margin:12px 0 4px"><b>'+esc(g[0])+'</b></p>'+g[1].map(function(f){return '<p style="margin:0 0 4px;padding-left:16px;text-indent:-16px;line-height:1.4">&bull; '+esc(f)+'</p>';}).join('');}).join('');}
 function sheet(html){V.sheet=html;render();}
 function render(){
   var v=V.view;if((v==='play'||v==='schedule'||v==='setup'||v==='plan'||v==='late'||v==='waiting')&&!cur())v='home';
@@ -427,17 +450,11 @@ async function act(a,d,el){
       if(!queued(m).length&&!playing(m).length){finishNow(m);break;}
       fillTables(m);save();go('play');break;}
     case 'latepick':go('late');break;
-    case 'addlate':{
-      snap();var L=d.id;var onTime=hereIds(m);m.here.push({id:L,late:true,at:now(),num:Math.max.apply(null,[0].concat(m.here.map(function(h){return h.num||0;})))+1});
-      if(m.status==='setup'||!m.games.length){generate(m);}
-      else{
-        var qd=queued(m),planned=plannedCounts(m),lockedMap={};m.locks.forEach(function(l){lockedMap[l[0]]=1;lockedMap[l[1]]=1;});
-        var arrs=qd.map(function(g){return g.p;});var given=E.addLate(arrs,planned,onTime,L,lockedMap);
-        qd.forEach(function(g,i){g.p=arrs[i];});
-        await uiAlert(given?pname(L)+' added to '+given+' remaining game'+(given===1?'':'s')+'. On-time players keep their planned games.':'No spare games for '+pname(L)+'. You can still swap them in from the Schedule.');
-        fillTables(m);
-      }
-      save();go('play');break;}
+    case 'sharefeatures':{var url=location.origin+'/features.html',msg='Team Pool Tracker builds fair doubles schedules and scores team pool matches. Free, no account, works offline. See what it does: '+url;
+      if(navigator.share)navigator.share({text:msg}).catch(function(){});else{try{await navigator.clipboard.writeText(msg);await uiAlert('Copied. Paste it into a text message.');}catch(e){await uiAlert(msg);}}break;}
+    case 'editwaiting':go('schedule');break;
+    case 'addlate':{await lateAdd(m,d.id);save();go('play');break;}
+    case 'addlatenew':{var bx2=document.getElementById('newlate'),r3=await addNames(parseNames(bx2?bx2.value:''));var fresh2=r3.ids.filter(function(id){return hereIds(m).indexOf(id)<0;});if(!fresh2.length){await uiAlert('Type a name first.');break;}for(var q=0;q<fresh2.length;q++)await lateAdd(m,fresh2[q]);save();go('play');break;}
     case 'finish':{
       var left=queued(m).length+playing(m).length;
       if(left&&!(await uiConfirm(left+' game'+(left===1?'':'s')+' not finished. Finish anyway? Unplayed games are removed.','Finish anyway')))return;

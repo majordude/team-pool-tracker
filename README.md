@@ -13,7 +13,7 @@ Live site: https://teampooltracker.com (trial)
 - Works offline after the first visit (installable web app)
 
 ## Layout
-- `app/`: the shipped static site (version 0.17). Plain HTML and JavaScript, no build step.
+- `app/`: the shipped static site (version 0.18). Plain HTML and JavaScript, no build step.
 - `app/tests/test_engine.js`: scheduling logic tests (`node app/tests/test_engine.js`)
 - `docs/`: feature list, requirements, and deployment guide
 
